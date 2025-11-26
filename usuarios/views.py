@@ -1,10 +1,15 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login
-from django.contrib.auth.views import LoginView, LogoutView
+from django.contrib.auth.views import LoginView
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib import messages
 from .forms import RegistroForm
+
+# Importaciones para el gráfico del Home
+from django.db.models import Count
+from alumnos.models import Alumno
+import json
 
 def registro_view(request):
     if request.user.is_authenticated:
@@ -43,6 +48,7 @@ def registro_view(request):
                     Atentamente,
                     El Equipo de Desarrollo (Examen Final)
                     """,
+                    
                     from_email=settings.DEFAULT_FROM_EMAIL, 
                     recipient_list=[user.email],
                     fail_silently=False,
@@ -51,7 +57,7 @@ def registro_view(request):
                 
             except Exception as e:
                 print(f"⚠️ Error enviando mail de registro: {e}")
-                
+                # No interrumpimos el flujo si falla el mail
 
             login(request, user)
             messages.success(request, 'Registro exitoso. Te hemos enviado un correo de confirmación.')
@@ -71,3 +77,28 @@ class MiLoginView(LoginView):
                 'class': 'form-control bg-dark text-white border-secondary'
             })
         return form
+
+
+def home_view(request):
+    
+    if not request.user.is_authenticated:
+        return render(request, 'usuarios/home.html')
+
+    
+    datos_carreras = (
+        Alumno.objects
+        .values('carrera')
+        .annotate(total=Count('id'))
+        .order_by('-total')
+    )
+
+    labels = [item['carrera'] for item in datos_carreras]
+    data = [item['total'] for item in datos_carreras]
+
+    context = {
+        'labels_json': json.dumps(labels),
+        'data_json': json.dumps(data),
+        'total_alumnos': Alumno.objects.count()
+    }
+
+    return render(request, 'usuarios/home.html', context)

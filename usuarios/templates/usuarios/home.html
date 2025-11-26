@@ -1,10 +1,118 @@
 {% extends 'usuarios/base.html' %}
+
 {% block content %}
-<div class="text-center py-5">
-    <h1 class="display-4 fw-bold">Bienvenido al Sistema</h1>
-    <p class="lead text-muted">Gestión de alumnos, reportes PDF y más.</p>
-    {% if not user.is_authenticated %}
-        <a href="{% url 'login' %}" class="btn btn-primary btn-lg mt-3">Comenzar</a>
-    {% endif %}
+
+<div class="text-center py-4">
+
+<!-- CASO 1: VISITANTES (No Logueados) -->
+{% if not user.is_authenticated %}
+    <div class="py-5">
+        <h1 class="display-4 fw-bold text-white">Bienvenido al Sistema</h1>
+        <p class="lead text-muted mb-4">Gestión integral de alumnos, reportes académicos e investigación.</p>
+        <a href="{% url 'login' %}" class="btn btn-primary btn-lg px-5 shadow">Comenzar Ahora</a>
+    </div>
+
+<!-- CASO 2: PANEL EJECUTIVO (Logueados) -->
+{% else %}
+    <h2 class="text-white mb-4 text-start"><i class="bi bi-bar-chart-line-fill text-warning"></i> Resumen Académico</h2>
+    
+    <div class="row">
+        <!-- TARJETA 1: TOTALES -->
+        <div class="col-md-4 mb-4">
+            <div class="card bg-dark border-primary text-white h-100 shadow">
+                <div class="card-body d-flex flex-column justify-content-center align-items-center">
+                    <h5 class="card-title text-primary text-uppercase small ls-1">Total Alumnos</h5>
+                    <p class="display-1 fw-bold mb-0">{{ total_alumnos }}</p>
+                    <small class="text-muted">Registrados en el sistema</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- TARJETA 2: GRÁFICO -->
+        <div class="col-md-8 mb-4">
+            <div class="card bg-dark border-secondary text-white shadow h-100">
+                <div class="card-header border-secondary d-flex justify-content-between align-items-center">
+                    <span>Distribución por Carrera</span>
+                    <span class="badge bg-primary">Tiempo Real</span>
+                </div>
+                <div class="card-body">
+                    <!-- El lienzo donde Chart.js dibujará -->
+                    <div style="height: 250px; position: relative;">
+                        <canvas id="carrerasChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ACCIONES RÁPIDAS -->
+    <div class="row mt-2">
+        <div class="col-12 text-start">
+            <h4 class="text-white mb-3">Accesos Directos</h4>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-light me-2 mb-2">
+                <i class="bi bi-list-ul"></i> Ver Listado Completo
+            </a>
+            <a href="{% url 'crear_alumno' %}" class="btn btn-success me-2 mb-2">
+                <i class="bi bi-person-plus"></i> Nuevo Alumno
+            </a>
+            <a href="{% url 'buscador' %}" class="btn btn-info mb-2">
+                <i class="bi bi-search"></i> Investigar Tema
+            </a>
+        </div>
+    </div>
+
+    <!-- SCRIPT DEL GRÁFICO (Chart.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Obtenemos el contexto del canvas
+        const ctx = document.getElementById('carrerasChart').getContext('2d');
+        
+        // Recibimos los datos desde Django de forma segura
+        // Usamos JSON.parse y escapejs para evitar errores de sintaxis
+        const labels = JSON.parse('{{ labels_json|escapejs|default:"[]" }}');
+        const data = JSON.parse('{{ data_json|escapejs|default:"[]" }}');
+
+        // Solo dibujamos si hay datos
+        if (labels.length > 0) {
+            new Chart(ctx, {
+                type: 'doughnut', // Tipo de gráfico: Dona
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: [
+                            '#0d6efd', // Azul
+                            '#198754', // Verde
+                            '#ffc107', // Amarillo
+                            '#dc3545', // Rojo
+                            '#6610f2', // Violeta
+                            '#0dcaf0', // Cyan
+                            '#fd7e14'  // Naranja
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // Para que respete la altura del div
+                    plugins: {
+                        legend: { 
+                            position: 'right', 
+                            labels: { color: 'white', font: { size: 12 } } 
+                        }
+                    }
+                }
+            });
+        } else {
+            // Mensaje si no hay datos
+            document.getElementById('carrerasChart').style.display = 'none';
+            document.querySelector('.card-body').innerHTML += 
+                '<div class="text-center text-muted py-5"><i class="bi bi-pie-chart fs-1 d-block mb-2"></i>No hay suficientes datos para graficar.<br>Crea algunos alumnos primero.</div>';
+        }
+    </script>
+{% endif %}
+
+
 </div>
 {% endblock %}
