@@ -56,12 +56,12 @@ def enviar_reporte_pdf(request, pk):
 
     subject = f"Reporte de Alumno: {alumno.nombre} {alumno.apellido}"
     body = "Adjuntamos la ficha técnica del alumno solicitada desde el sistema."
-    email_destino = request.user.email  
-
+    email_destino = request.user.email 
+    
     email = EmailMessage(
         subject,
         body,
-        settings.EMAIL_HOST_USER,
+        settings.DEFAULT_FROM_EMAIL, # <--- CAMBIAR ESTO
         [email_destino],
     )
     

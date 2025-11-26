@@ -13,6 +13,7 @@ def buscar_view(request):
     query = request.GET.get('q')
 
     if query:
+        
         url = f"https://es.wikipedia.org/wiki/{query.replace(' ', '_')}"
         
         try:
@@ -38,13 +39,11 @@ def buscar_view(request):
                 
                 
                 imagen_url = None
-                
                 infobox = soup.find('table', {'class': 'infobox'})
                 if infobox:
                     img_tag = infobox.find('img')
                     if img_tag:
                         imagen_url = img_tag.get('src')
-                
                 
                 if not imagen_url:
                     thumb = soup.find('div', {'class': 'tright'})
@@ -53,7 +52,6 @@ def buscar_view(request):
                         if img_tag:
                             imagen_url = img_tag.get('src')
 
-                
                 if imagen_url and imagen_url.startswith('//'):
                     imagen_url = f"https:{imagen_url}"
                 
@@ -102,12 +100,14 @@ def enviar_investigacion(request):
             send_mail(
                 asunto,
                 mensaje,
-                settings.EMAIL_HOST_USER,
+                settings.DEFAULT_FROM_EMAIL, 
                 [request.user.email],
                 fail_silently=False,
             )
             messages.success(request, "La información (con foto) fue enviada a tu correo.")
         except Exception as e:
+            
+            print(f"Error enviando email scraping: {e}") 
             messages.error(request, "Error al enviar el correo.")
             
     return redirect('buscador')
