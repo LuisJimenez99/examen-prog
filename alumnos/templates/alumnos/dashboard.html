@@ -1,0 +1,46 @@
+{% extends 'usuarios/base.html' %}
+{% block title %}Panel de Alumnos{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-people-fill text-primary"></i> Listado de Alumnos</h2>
+    <a href="{% url 'crear_alumno' %}" class="btn btn-success"><i class="bi bi-person-plus-fill"></i> Nuevo Alumno</a>
+</div>
+
+<div class="card shadow">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover mb-0 align-middle">
+                <thead class="table-secondary text-dark">
+                    <tr>
+                        <th>Legajo</th>
+                        <th>Nombre Completo</th>
+                        <th>Carrera</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for alumno in alumnos %}
+                    <tr>
+                        <td class="fw-bold text-info">#{{ alumno.legajo }}</td>
+                        <td>{{ alumno.apellido }}, {{ alumno.nombre }}</td>
+                        <td>{{ alumno.carrera }}</td>
+                        <td class="text-center">
+                            <!-- BOTÓN MÁGICO DE PDF -->
+                            <a href="{% url 'enviar_pdf' alumno.pk %}" class="btn btn-outline-warning btn-sm" title="Enviar PDF por Email">
+                                <i class="bi bi-file-earmark-pdf-fill"></i> Enviar a Docente
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-4 text-muted">
+                            No hay alumnos registrados. ¡Crea el primero!
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
