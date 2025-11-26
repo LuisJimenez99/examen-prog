@@ -15,19 +15,46 @@ def registro_view(request):
         if form.is_valid():
             user = form.save()
             
+            # --- ENVÍO DE CORREO DE BIENVENIDA ---
             try:
+                print("Intentando enviar email de bienvenida...")
+                
                 send_mail(
-                    subject='¡Bienvenido a la Plataforma!',
-                    message=f'Hola {user.username}, gracias por registrarte en nuestro sistema de alumnos.',
-                    from_email=settings.EMAIL_HOST_USER,
+                    subject='¡Registro Exitoso! - Sistema de Alumnos',
+                    message=f"""
+                    Estimado/a {user.username},
+
+                    ¡Muchas gracias por registrarte en nuestra plataforma!
+
+                    Este correo es una confirmación automática para verificar que tu cuenta ha sido creada correctamente en la base de datos del sistema.
+
+                    -------------------------------------------------------------
+                    ✅ VERIFICACIÓN DE EXAMEN DE PROGRAMACIÓN
+                    -------------------------------------------------------------
+                    Si estás leyendo esto, significa que el sistema de envío de correos (integrado con SendGrid) y el despliegue en la nube (Render) están funcionando perfectamente.
+                    
+                    A partir de ahora puedes:
+                    1. Iniciar sesión en el panel.
+                    2. Gestionar alumnos.
+                    3. Generar reportes PDF y recibirlos por aquí.
+
+                    ¡Esperamos que tengas una excelente experiencia!
+
+                    Atentamente,
+                    El Equipo de Desarrollo (Examen Final)
+                    """,
+                    from_email=settings.DEFAULT_FROM_EMAIL, 
                     recipient_list=[user.email],
                     fail_silently=False,
                 )
+                print("Email de bienvenida enviado con éxito.")
+                
             except Exception as e:
-                print(f"Error enviando mail: {e}")
+                print(f"⚠️ Error enviando mail de registro: {e}")
+                
 
             login(request, user)
-            messages.success(request, 'Registro exitoso. Te hemos enviado un correo.')
+            messages.success(request, 'Registro exitoso. Te hemos enviado un correo de confirmación.')
             return redirect('home')
     else:
         form = RegistroForm()
